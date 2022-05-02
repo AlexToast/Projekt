@@ -1,32 +1,60 @@
 package escaperoom.game;
 
 public class Game {
+    
+    public static final int MAX_ROOMS = 3;
 
-//    EscapeRoom rooms[];
-//
-//    public Game(int howManyRooms){
-//        rooms = new EscapeRoom[howManyRooms];
-//    }
-//
-//    protected void gameStart() { //wird von der Main aufgerufen
-//        gameIntroduction();
-//        int i = 0;
-//        boolean endGame = false;
-//        do{
-//            if(rooms[i].geloest() == true){
-//                i++;
-//                if(i == rooms.length -1){
-//                    endGame = true;
-//                }
-//            }
-//        }while(!endGame);
-//        gameEnd();
-//    }
-//
-//    private String gameIntroduction(){
-//        return "intro";
-//    }
-//    private String gameEnd(){
-//        return "end";
-//    }
+    public static void main(String[] args) {
+        int maxRooms = MAX_ROOMS;
+        int[] amountOfRooms;
+        int rooms = 0, riddlesForOneRoom = 0;
+
+        InOut inOut = InOut.getInOut();   //Ein InOut Objekt erzeugen
+        inOut.startScanner();
+
+        boolean isValid = false;
+        do {    //How many Rooms he wants to be there
+            inOut.print("How many rooms do you want to have?");
+            try {
+                rooms = inOut.getInteger();
+                if (rooms > maxRooms) {
+                    isValid = false;
+                    inOut.print("(Maximum: " + MAX_ROOMS + ")");
+                } else if (rooms < 1) {
+                    inOut.print("(Minimum: 1)");
+                } else
+                    isValid = true;
+            } catch (InvalidInputException e) {
+                inOut.print("Please only enter a number");
+                isValid = false;
+            }
+        } while (!isValid);
+
+        amountOfRooms = new int[rooms];
+
+        for (int i = 0; i < amountOfRooms.length; i++) {
+            inOut.print("How many riddles for room: " + (i + 1));
+            isValid = false;
+            do {     //How many riddles for one room
+                try {
+                    riddlesForOneRoom = inOut.getInteger();
+                    isValid = true;
+                    amountOfRooms[i] = riddlesForOneRoom;
+                } catch (InvalidInputException e) {
+                    inOut.print("Please only enter a number");
+                    isValid = false;
+                }
+            } while (!isValid);
+        }
+
+        EscapeRoom eRoom = new EscapeRoom(amountOfRooms);
+
+        if (eRoom.play() == true)
+            inOut.print("solved");
+        else
+            inOut.print("unsolved");
+
+        inOut.closeScanner();
+    }
 }
+
