@@ -1,0 +1,245 @@
+package EscapeRoom;
+
+import java.util.Arrays;
+
+/**
+ * @author Alexander Pickelberger
+ * @version 1.0
+ */
+public class RiddleLabyrinth implements Riddle{
+    private char[][] labyrinth;
+    private final char player;
+    private InOut inOut;
+    private boolean isSolved;
+    private int xPos;
+    private int yPos;
+    private final String ENDKEY = "2";
+    private final String ANSI_RESET = "\u001B[0m";
+    private final String ANSI_BLUE = "\u001B[34m";
+
+    /**
+     * creates a RiddleLabyrinth object and initializes the starting positions and the labyrinth
+     */
+    public RiddleLabyrinth(){
+        player = 'x';
+        inOut = InOut.getInOut();
+        inOut.startScanner();
+        isSolved = false;
+        xPos = 0;
+        yPos = 3;
+        fillBoard();
+    }
+
+    /**
+     * @return the String which describes the riddle
+     */
+    public String inspect() {
+        return "In fornt of you, there is a letter on a book.\n" +
+                "The letter says:\"Open the book on page 34\". And you open it.\n" +
+                "In there you find a labyrinth. On the top are the rules:\n" +
+                "d -> right\n" +
+                "a -> left\n" +
+                "s -> back\n" +
+                "w -> forward\n";
+
+    }
+
+    /**
+     * contains all the logic
+     */
+    public void solve(){
+        do {
+            printLabyrinth();
+            selectInput();
+            if(xPos == 15 && yPos == 13){
+                isSolved = true;
+                labyrinth[13][14] = ' ';
+                labyrinth[13][15] = 'x';
+            }
+        }while(!this.isSolved);
+        inOut.print("You got it! Now the Page switches and it shows just the number 324. " +
+                "You open the page and see a number that is highlighted. The number is "+ ENDKEY);
+    }
+
+    /**
+     * selects the move the player chose
+     */
+    private void selectInput(){
+        switch (inOut.getText().toLowerCase()) {
+            case "d":
+                moveRight();
+                break;
+            case "a":
+                moveLeft();
+                break;
+            case "s":
+                moveBack();
+                break;
+            case "w":
+                moveForward();
+                break;
+            default:
+                inOut.print("Worng input only r, l, b, f");
+                selectInput();
+                break;
+        }
+    }
+
+    /**
+     * moves the player to the right as far as possible
+     */
+    private void moveRight(){
+        int oldX = xPos;
+        for(int i = (xPos + 1); i < labyrinth[yPos].length; i++){
+            if(labyrinth[yPos][i] != ' ' && labyrinth[yPos][i] != 'o') {
+                labyrinth[yPos][oldX] = ' ';
+                labyrinth[yPos][xPos] = 'x';
+                break;
+            }else if(labyrinth[yPos][i] == 'o'){
+                xPos++;
+                oHit();
+            }else {
+                xPos++;
+            }
+        }
+    }
+
+    /**
+     * moves the player to the left as far as possible
+     */
+    private void moveLeft(){
+        int oldX = xPos;
+        for(int i = (xPos - 1); i >= 0; i--) {
+            if (labyrinth[yPos][i] != ' ' && labyrinth[yPos][i] != 'o') {
+                labyrinth[yPos][oldX] = ' ';
+                labyrinth[yPos][xPos] = 'x';
+                break;
+            }else if(labyrinth[yPos][i] == 'o'){
+                xPos--;
+                oHit();
+            }else{
+                xPos--;
+            }
+
+        }
+    }
+
+    /**
+     * moves the player back as far as possible
+     */
+    private void moveBack(){
+        int oldY = yPos;
+        for(int i = (yPos + 1); i < labyrinth.length; i++){
+            if(labyrinth[i][xPos] != ' ' && labyrinth[i][xPos] != 'o') {
+                labyrinth[oldY][xPos] = ' ';
+                labyrinth[yPos][xPos] = 'x';
+                break;
+            }else if(labyrinth[i][xPos] == 'o'){
+                yPos++;
+                oHit();
+            }else{
+                yPos++;
+            }
+
+        }
+    }
+
+    /**
+     * moves the player forward as far as possible
+     */
+    private void moveForward(){
+        int oldY = yPos;
+        for(int i = (yPos - 1); i >= 0; i--){
+            if(labyrinth[i][xPos] != ' ' && labyrinth[i][xPos] != 'o') {
+                labyrinth[oldY][xPos] = ' ';
+                labyrinth[yPos][xPos] = 'x';
+                break;
+            }else if(labyrinth[i][xPos] == 'o'){
+                yPos--;
+                oHit();
+            }else{
+                yPos--;
+            }
+
+        }
+    }
+
+    /**
+     * checks which o got hit
+     */
+    private void oHit(){
+        if(xPos == 12 && yPos == 1){//erstes o
+            labyrinth[2][8] = '┤';
+            labyrinth[1][8] = '│';
+            labyrinth[0][8] = '┬';
+        }else if(xPos == 14 && yPos == 1){//zweites o
+            labyrinth[6][11] = '┴';
+            labyrinth[6][12] = '─';
+            labyrinth[6][13] = '┐';
+        }else if(xPos == 14 && yPos == 11) {//drittes o
+            labyrinth[8][13] = '┴';
+            labyrinth[8][14] = '─';
+            labyrinth[8][15] = '┤';
+        }else if(xPos == 9 && yPos == 14){//viertes o
+            labyrinth[14][7] = '│';
+            labyrinth[13][7] = '┤';
+            labyrinth[15][7] = '┴';
+        }else{
+            System.err.println("Error");
+        }
+
+    }
+    /**
+     * prints the labyrinth out
+     */
+    private void printLabyrinth(){
+        int i = 0;
+        StringBuilder sb = new StringBuilder();
+        for(char[] einDim : labyrinth){
+            for(char c : einDim){
+                if(c == 'o'){
+                    sb.append(ANSI_BLUE + c + ANSI_RESET);
+                }else
+                    sb.append(c);
+            }
+            i++;
+            if(i != labyrinth.length)
+                sb.append("\n");
+        }
+        inOut.print(sb.toString());
+        sb.setLength(0);
+    }
+
+    /**
+     * fills the board
+     * @return the filled board
+     */
+    private char[][] fillBoard(){
+        labyrinth = new char[][] {
+                {'┌','─','─','─','─','─','─','─','─','─','─','─','─','┬','─','┐',},
+                {'│',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','o','│','o','│',},
+                {'└','─','─','┐',' ','│',' ','─','┐',' ','─','┬','─','┘',' ','│',},
+                {'x',' ',' ','│',' ','│',' ',' ','│',' ',' ','│',' ',' ',' ','│',},
+                {'┌',' ',' ','└','─','┼','─',' ','├','─',' ','│',' ',' ','─','┤',},
+                {'│',' ',' ',' ',' ','│',' ',' ','│',' ',' ','│',' ',' ',' ','│',},
+                {'├','─','┐',' ',' ',' ',' ','┌','┤',' ','─','┘',' ','│',' ','│',},
+                {'│',' ','└','┬','─','─','─','┘','│',' ',' ',' ',' ','│',' ','│',},
+                {'│',' ',' ','│',' ',' ',' ',' ','└','─','─','┬','─','┘',' ','│',},
+                {'│',' ','─','┘',' ','─','┐',' ',' ',' ',' ',' ',' ',' ',' ','│',},
+                {'│',' ',' ',' ',' ',' ','└','─','─','┐',' ',' ',' ','│',' ','│',},
+                {'│',' ',' ','┌','─',' ',' ','┌','─','┴','─','─','─','┤','o','│',},
+                {'│',' ',' ','│',' ',' ',' ','│',' ',' ',' ',' ',' ','├','─','┤',},
+                {'├','─',' ','│',' ','─','─','┘',' ','─','┬','─',' ','│',' ',' ',},
+                {'│',' ',' ','│',' ',' ',' ',' ',' ','o','│',' ',' ',' ',' ','│',},
+                {'└','─','─','┴','─','─','─','─','─','─','┴','─','─','─','─','┘',},
+        };
+        return labyrinth;
+    }
+
+    /**
+     * @return if the riddle is solved
+     */
+    public boolean isSolved() {
+        return this.isSolved;
+    }
+}
